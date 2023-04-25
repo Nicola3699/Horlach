@@ -1,0 +1,41 @@
+import telegram
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+import requests
+
+# Replace with your own API key and search engine ID
+API_KEY = 'your_api_key'
+SEARCH_ENGINE_ID = 'your_search_engine_id'
+
+def search(bot, update):
+    # Get the user's message
+    query = update.message.text
+
+    # Call the Google Custom Search API to search for the query
+    url = f"https://www.googleapis.com/customsearch/v1?key={API_KEY}&cx={SEARCH_ENGINE_ID}&q={query}"
+    response = requests.get(url).json()
+
+    # Parse the search results and format them as a message
+    results = response['items']
+    message = ''
+    for result in results:
+        title = result['title']
+        link = result['link']
+        message += f"{title}\n{link}\n\n"
+
+    # Send the message back to the user
+    chat_id = update.message.chat_id
+    bot.send_message(chat_id=chat_id, text=message)
+
+def main():
+    # Create a Telegram bot and add the search command handler
+    bot = telegram.Bot(token='your_bot_token')
+    updater = Updater(token='your_bot_token')
+    dp = updater.dispatcher
+    dp.add_handler(CommandHandler('search', search))
+
+    # Start the bot
+    updater.start_polling()
+    updater.idle()
+
+if __name__ == '__main__':
+    main()
